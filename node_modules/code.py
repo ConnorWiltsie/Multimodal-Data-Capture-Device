@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multimodal Learning Analysis Device</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-image: url('C:/Users/riada/Desktop/CPS698/multimodal.gif');
+            background-size: cover;
+            color: white;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            margin: 50px auto;
+            width: 80%;
+            border-radius: 10px;
+        }
+
+        input[type="file"] {
+            margin: 10px;
+        }
+
+        .file-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .file-box {
+            background-color: #333;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 8px;
+            width: 200px;
+            text-align: center;
+        }
+
+        img {
+            max-width: 100px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .delete-btn {
+            background-color: red;
+        }
+
+        .delete-btn:hover {
+            background-color: darkred;
+        }
+
+        .download-btn {
+            background-color: #008CBA;
+        }
+
+        .download-btn:hover {
+            background-color: #007bb5;
+        }
+
+        .open-btn {
+            background-color: #FF9800;
+        }
+
+        .open-btn:hover {
+            background-color: #e68900;
+        }
+
+        .close-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            font-size: 16px;
+            padding: 5px;
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            border-radius: 5px;
+        }
+
+        .preview-box {
+            margin-top: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            position: relative;
+        }
+
+        .preview-box img, .preview-box video, .preview-box audio {
+            max-width: 35%;
+            margin: 10px 0;
+        }
+
+        .preview-box pre {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multimodal Learning Analysis Device</h1>
+        
+        <div>
+            <input type="file" id="uploadPicture" accept="image/*">
+            <button onclick="uploadFile('picture')">Upload Picture</button>
+        </div>
+        <div>
+            <input type="file" id="uploadVideo" accept="video/*">
+            <button onclick="uploadFile('video')">Upload Video</button>
+        </div>
+        <div>
+            <input type="file" id="uploadAudio" accept="audio/*">
+            <button onclick="uploadFile('audio')">Upload Audio</button>
+        </div>
+        <div>
+            <input type="file" id="uploadTextFile" accept=".txt">
+            <button onclick="uploadFile('text')">Upload Text File</button>
+        </div>
+        <button onclick="uploadAllFiles()">Upload All Files</button>
+
+        <h3>Uploaded Files</h3>
+        <div id="fileContainer" class="file-container"></div>
+
+        <h3>File Preview</h3>
+        <div id="previewContainer" class="preview-box"></div>
+    </div>
+
+    <script>
+        let files = [];
+
+        function uploadFile(type) {
+            let fileInput;
+            switch (type) {
+                case 'picture':
+                    fileInput = document.getElementById('uploadPicture');
+                    break;
+                case 'video':
+                    fileInput = document.getElementById('uploadVideo');
+                    break;
+                case 'audio':
+                    fileInput = document.getElementById('uploadAudio');
+                    break;
+                case 'text':
+                    fileInput = document.getElementById('uploadTextFile');
+                    break;
+            }
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                files.push({ type: type, file: file });
+                displayFiles();
+                fileInput.value = ""; // Clear the file input after selecting a file
+            } else {
+                alert('No file selected!');
+            }
+        }
+
+        function uploadAllFiles() {
+            if (files.length > 0) {
+                alert('All files uploaded!');
+            } else {
+                alert('No files to upload!');
+            }
+        }
+
+        function displayFiles() {
+            const fileContainer = document.getElementById('fileContainer');
+            fileContainer.innerHTML = ''; // Clear the container to prevent duplicate buttons
+
+            files.forEach((fileObj, index) => {
+                const fileBox = document.createElement('div');
+                fileBox.classList.add('file-box');
+
+                let fileName = document.createElement('p');
+                fileName.textContent = `${fileObj.file.name} (${fileObj.type})`;
+                fileBox.appendChild(fileName);
+
+                let openBtn = document.createElement('button');
+                openBtn.textContent = 'Open';
+                openBtn.classList.add('open-btn');
+                openBtn.onclick = () => openFile(index);
+                fileBox.appendChild(openBtn);
+
+                let downloadBtn = document.createElement('a');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.href = URL.createObjectURL(fileObj.file);
+                downloadBtn.download = fileObj.file.name;
+                downloadBtn.classList.add('download-btn');
+                fileBox.appendChild(downloadBtn);
+
+                let deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.onclick = () => deleteFile(index);
+                fileBox.appendChild(deleteBtn);
+
+                fileContainer.appendChild(fileBox);
+            });
+        }
+
+        function openFile(index) {
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = ''; // Clear previous preview
+
+            const fileObj = files[index];
+
+            let closeButton = document.createElement('button');
+            closeButton.textContent = 'X';
+            closeButton.classList.add('close-btn');
+            closeButton.onclick = () => closePreview();
+            previewContainer.appendChild(closeButton);
+
+            if (fileObj.type === 'picture') {
+                let img = document.createElement('img');
+                img.src = URL.createObjectURL(fileObj.file);
+                previewContainer.appendChild(img);
+            } else if (fileObj.type === 'video') {
+                let video = document.createElement('video');
+                video.controls = true;
+                video.src = URL.createObjectURL(fileObj.file);
+                previewContainer.appendChild(video);
+            } else if (fileObj.type === 'audio') {
+                let audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = URL.createObjectURL(fileObj.file);
+                previewContainer.appendChild(audio);
+            } else if (fileObj.type === 'text') {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    let pre = document.createElement('pre');
+                    pre.textContent = event.target.result;
+                    previewContainer.appendChild(pre);
+                };
+                reader.readAsText(fileObj.file);
+            }
+        }
+
+        function closePreview() {
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = ''; // Clear the preview
+        }
+
+        function deleteFile(index) {
+            files.splice(index, 1);
+            displayFiles();
+            document.getElementById('previewContainer').innerHTML = ''; // Clear preview when a file is deleted
+        }
+    </script>
+</body>
+</html>
