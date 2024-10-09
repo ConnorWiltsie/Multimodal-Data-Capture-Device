@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Capture Image</title>
+</head>
+<body>
+    <h1>Capture Image</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" name="capture">Capture Image</button>
+    </form>
+    {% if img_paths %}
+    <h2>Captured Images:</h2>
+    {% for img_path in img_paths %}
+    <div>
+        <img src="{{ img_path }}" alt="Captured Image" style="max-width: 300px; height: auto;">
+        <br>
+        <a href="{{ img_path }}" download>Download Image</a>
+    </div>
+    {% endfor %}
+    {% endif %}
+</body>
+</html>
