@@ -3,33 +3,39 @@ from django.shortcuts import render
 from django.conf import settings
 
 # Libraries for capturing image
-import cv2
 from datetime import datetime
-# from picamera import PiCamera
+from picamera2 import Picamera2
+from time import sleep
+
 
 # Libraries for recording audio
 import wave
-import pyaudio
+#import pyaudio
 
 # Capture image
 def capture():
-    cap = cv2.VideoCapture(0)
-    ret, frame = cap.read()
+    
+    #Create picamera
+    picam2 = Picamera2()
+    config = picam2.create_still_configuration()
+    picam2.configure(config)
+    picam2.start()
+    sleep(2)
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     image_filename = f'image_{timestamp}.jpg'
     image_path = os.path.join(settings.MEDIA_ROOT, image_filename)
-    cv2.imwrite(image_path, frame)
-    cap.release()
+    picam2.capture_file(image_path)
+    picam2.stop()
     return image_filename
 
 # Record audio
-p = pyaudio.PyAudio()
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
-stream = None
-frames = []
+#p = pyaudio.PyAudio()
+#CHUNK = 1024
+#FORMAT = pyaudio.paInt16
+#CHANNELS = 1
+#RATE = 44100
+#stream = None
+#frames = []
 
 #def start_record():
 #    global stream, frames
