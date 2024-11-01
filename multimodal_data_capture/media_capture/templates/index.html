@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Capture Image and Record Audio</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
+
 <body>
-     <h1>Capture Image and Record Audio</h1>
+    <h1>Capture Image and Record Audio</h1>
     <form method="POST">
         {% csrf_token %}
         <button type="submit" name="capture">Capture Image</button>
@@ -25,7 +27,7 @@
     </div>
     {% endfor %}
     {% endif %}
-    
+
     {% if audio_paths %}
     <h2>Recorded Audio:</h2>
     {% for audio_path in audio_paths %}
@@ -36,15 +38,20 @@
         </audio>
         <br>
         <a href="{{ audio_path }}" download>Download Audio</a>
+        <br>
+        <button class="transcribe-button" data-audio="{{ audio_path }}">Transcribe</button>
+        <div class="transcription-result" style="display: none;">
+            <p class="transcription-text"></p>
+            <a class="download-transcription" href="#" download style="display: none;">Download Transcription</a>
+        </div>
     </div>
     {% endfor %}
     {% endif %}
-    
+
     <script>
         $(document).ready(function() {
             $('#startRecording').click(function() {
-                $.post('', {
-                    'action': 'start_recording',
+                $.post('{% url "start_recording" %}', {
                     'csrfmiddlewaretoken': '{{ csrf_token }}'
                 }, function(data) {
                     alert(data.status);
@@ -54,17 +61,60 @@
             });
 
             $('#stopRecording').click(function() {
-                $.post('', {
-                    'action': 'stop_recording',
+                $.post('{% url "stop_recording" %}', {
                     'csrfmiddlewaretoken': '{{ csrf_token }}'
                 }, function(data) {
                     alert(data.status);
                     $('#startRecording').prop('disabled', false);
                     $('#stopRecording').prop('disabled', true);
-                    location.reload(); // Reload the page to show the new audio file
+                    location.reload(); 
                 });
             });
+
+            $('.transcribe-button').click(function() {
+                var audioPath = $(this).data('audio');
+                var button = $(this);
+                var resultDiv = button.siblings('.transcription-result');
+
+                $.post('{% url "start_transcription" %}', {
+                    'audio_filename': audioPath.split('/').pop(),
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                }, function(data) {
+                    button.prop('disabled', true);
+                    button.text('Transcribing...');
+                    checkTranscriptionStatus(audioPath, button, resultDiv);
+                });
+            });
+
+            function checkTranscriptionStatus(audioPath, button, resultDiv) {
+                $.get('{% url "get_transcription" %}', {
+                    'audio_filename': audioPath.split('/').pop()
+                }, function(data) {
+                    if (data.status === 'completed') {
+                        button.text('Transcription Complete');
+                        resultDiv.find('.transcription-text').text(data.transcription);
+                        var downloadLink = resultDiv.find('.download-transcription');
+                        downloadLink.attr('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.transcription));
+                        downloadLink.show();
+                        resultDiv.show();
+                    } else if (data.status === 'error') {
+                        button.text('Transcription Error');
+                        resultDiv.find('.transcription-text').text('Error: ' + data.message);
+                        resultDiv.show();
+                    } else {
+                        setTimeout(function() {
+                            checkTranscriptionStatus(audioPath, button, resultDiv);
+                        }, 5000);
+                    }
+                }).fail(function() {
+                    button.text('Transcription Error');
+                    resultDiv.find('.transcription-text').text('Error: Failed to get transcription status');
+                    resultDiv.show();
+                });
+            }
         });
+
     </script>
 </body>
+
 </html>
