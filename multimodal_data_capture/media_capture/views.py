@@ -15,6 +15,7 @@ from time import sleep
 # Libraries for recording audio
 import wave
 import pyaudio
+import time
 
 from .whisper import transcribe_audio
 
@@ -41,7 +42,7 @@ class AudioRecorder:
     RATE = 44100
 
     def __init__(self):
-        self.p = pyaudio.PyAudio()
+        self.p = None
         self.stream = None
         self.frames = []
         self.is_recording = False
@@ -49,8 +50,10 @@ class AudioRecorder:
 
     def start_recording(self):
         if not self.is_recording:
+            logger.info("Starting recording")
             self.is_recording = True
             self.frames = []
+            self.p = pyaudio.PyAudio()
             self.stream = self.p.open(format=self.FORMAT, channels=self.CHANNELS, 
                                       rate=self.RATE, input=True, 
                                       frames_per_buffer=self.CHUNK)
@@ -60,45 +63,60 @@ class AudioRecorder:
         return False
 
     def _record_audio(self):
+        logger.info("Recording thread started")
         while self.is_recording:
-            data = self.stream.read(self.CHUNK)
-            self.frames.append(data)
+            try:
+                data = self.stream.read(self.CHUNK)
+                self.frames.append(data)
+            except Exception as e:
+                logger.error(f"Error during recording: {str(e)}")
+                self.is_recording = False
+        logger.info("Recording thread ended")
 
     def stop_recording(self):
         if self.is_recording:
+            logger.info("Stopping recording")
             self.is_recording = False
+            time.sleep(0.5)  
             if self.stream:
                 self.stream.stop_stream()
                 self.stream.close()
+            if self.p:
+                self.p.terminate()
             
             audio_path = os.path.join(settings.MEDIA_ROOT, self.audio_filename)
-            wf = wave.open(audio_path, 'wb')
-            wf.setnchannels(self.CHANNELS)
-            wf.setsampwidth(self.p.get_sample_size(self.FORMAT))
-            wf.setframerate(self.RATE)
-            wf.writeframes(b''.join(self.frames))
-            wf.close()
+            with wave.open(audio_path, 'wb') as wf:
+                wf.setnchannels(self.CHANNELS)
+                wf.setsampwidth(self.p.get_sample_size(self.FORMAT))
+                wf.setframerate(self.RATE)
+                wf.writeframes(b''.join(self.frames))
             
-            threading.Thread(target=self._transcribe_and_save, args=(audio_path,)).start()
+            logger.info(f"Audio saved to {audio_path}")
             return self.audio_filename
         return None
-
-    def _transcribe_and_save(self, audio_path):
-        transcribe_audio(audio_path)
 
 audio_recorder = AudioRecorder()
 
 def start_recording(request):
     if audio_recorder.start_recording():
+        logger.info("Recording started successfully")
         return JsonResponse({"status": "Recording started"})
+    logger.warning("Attempted to start recording while already recording")
     return JsonResponse({"status": "Already recording"})
 
 def stop_recording(request):
-    filename = audio_recorder.stop_recording()
-    if filename:
-        return JsonResponse({"status": "Recording stopped", "filename": filename})
-    return JsonResponse({"status": "Not recording"})
-
+    try:
+        filename = audio_recorder.stop_recording()
+        if filename:
+            logger.info(f"Recording stopped successfully. File: {filename}")
+            return JsonResponse({"status": "Recording stopped", "filename": filename})
+        else:
+            logger.warning("Stop recording called but no recording was in progress")
+            return JsonResponse({"status": "Not recording"})
+    except Exception as e:
+        logger.error(f"Error stopping recording: {str(e)}", exc_info=True)
+        return JsonResponse({"status": "Error", "message": str(e)}, status=500)
+    
 def start_transcription(request):
     audio_filename = request.POST.get('audio_filename')
     if not audio_filename:
@@ -149,23 +167,32 @@ def index(request):
                 capture()
             except Exception as e:
                 logger.error(f"Error capturing image: {str(e)}")
-        elif request.POST.get('action') == 'start_recording':
-            return start_recording(request)
-        elif request.POST.get('action') == 'stop_recording':
-            return stop_recording(request)
 
     img_files = os.listdir(settings.MEDIA_ROOT)
     img_paths = [os.path.join(settings.MEDIA_URL, img) for img in img_files if img.startswith('image_')]
     
     audio_files = [f for f in os.listdir(settings.MEDIA_ROOT) if f.startswith('audio_') and f.endswith('.wav')]
-    audio_paths = [os.path.join(settings.MEDIA_URL, audio) for audio in audio_files]
+    audio_files.sort(key=lambda x: os.path.getmtime(os.path.join(settings.MEDIA_ROOT, x)), reverse=True)
     
-    transcription_files = [f.replace('.wav', '.txt') for f in audio_files if os.path.exists(os.path.join(settings.MEDIA_ROOT, f.replace('.wav', '.txt')))]
-    transcription_paths = [os.path.join(settings.MEDIA_URL, trans) for trans in transcription_files]
+    audio_data = []
+    for audio_file in audio_files:
+        audio_path = os.path.join(settings.MEDIA_URL, audio_file)
+        transcription_file = audio_file.replace('.wav', '.txt')
+        transcription_path = os.path.join(settings.MEDIA_ROOT, transcription_file)
+        
+        if os.path.exists(transcription_path):
+            with open(transcription_path, 'r', encoding='utf-8') as f:
+                transcription = f.read()
+        else:
+            transcription = None
+        
+        audio_data.append({
+            'audio_path': audio_path,
+            'transcription': transcription
+        })
 
     context = {
         'img_paths': img_paths,
-        'audio_paths': audio_paths,
-        'transcription_paths': transcription_paths,
+        'audio_data': audio_data,
     }
-    return render(request, 'index.html', context)
+    return render(request, 'media_capture/index.html', context)

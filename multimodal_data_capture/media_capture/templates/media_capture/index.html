@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capture Image and Record Audio</title>
+    <link rel="stylesheet" href="{% static 'media_capture/css/styles.css' %}">
+</head>
+
+<body>
+    <h1>Capture Image and Record Audio</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" name="capture">Capture Image</button>
+    </form>
+
+    <h2>Audio Recording</h2>
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording" disabled>Stop Recording</button>
+
+    {% if img_paths %}
+    <h2>Captured Images:</h2>
+    <div class="image-container">
+        {% for img_path in img_paths %}
+        <div class="image-item">
+            <img src="{{ img_path }}" alt="Captured Image">
+            <a href="{{ img_path }}" download>Download Image</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if audio_data %}
+    <h2>Recorded Audio:</h2>
+    <div class="audio-container">
+        {% for item in audio_data %}
+        <div class="audio-item">
+            <audio controls>
+                <source src="{{ item.audio_path }}" type="audio/wav">
+                Your browser does not support the audio element.
+            </audio>
+            <a href="{{ item.audio_path }}" download>Download Audio</a>
+            {% if item.transcription %}
+            <div class="transcription-result">
+                <p class="transcription-text">{{ item.transcription }}</p>
+                <a class="download-transcription" href="data:text/plain;charset=utf-8,{{ item.transcription|urlencode }}" download="transcription.txt">Download Transcription</a>
+            </div>
+            {% else %}
+            <button class="transcribe-button" data-audio="{{ item.audio_path }}">Transcribe</button>
+            <div class="transcription-result" style="display: none;">
+                <p class="transcription-text"></p>
+                <a class="download-transcription" href="#" download style="display: none;">Download Transcription</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No audio recordings available.</p>
+    {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'media_capture/js/main.js' %}"></script>
+</body>
+
+</html>
