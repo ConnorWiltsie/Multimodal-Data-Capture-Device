@@ -1,68 +1,90 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capture Image and Record Audio</title>
+    <title>Multimodal Data Capture Tool</title>
     <link rel="stylesheet" href="{% static 'media_capture/css/styles.css' %}">
 </head>
-
 <body>
-    <h1>Capture Image and Record Audio</h1>
-    <form method="POST">
-        {% csrf_token %}
-        <button type="submit" name="capture">Capture Image</button>
-    </form>
+<header>
+    <h1>Multimodal Learning Analytics Device</h1>
+</header>
 
-    <h2>Audio Recording</h2>
-    <button id="startRecording">Start Recording</button>
-    <button id="stopRecording" disabled>Stop Recording</button>
+<main>
+    <section class="welcome">
+        <h2>Your Ultimate Learning Tool</h2>
+        <p>Easily snap, record and transcribe for your learning projects</p>
+    </section>
 
-    {% if img_paths %}
-    <h2>Captured Images:</h2>
-    <div class="image-container">
-        {% for img_path in img_paths %}
-        <div class="image-item">
-            <img src="{{ img_path }}" alt="Captured Image">
-            <a href="{{ img_path }}" download>Download Image</a>
+    <section class="actions">
+        <button id="recordAudio" class="action-button">Record Audio</button>
+        <button id="captureImage" class="action-button">Capture Image</button>
+    </section>
+
+    <div id="recordingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeRecordingModal">&times;</span>
+            <h2>Recording Audio</h2>
+            <div id="timer">00:00</div>
+            <button id="startRecordingButton" class="action-button">Start Recording</button>
+            <button id="stopRecordingButton" class="action-button" disabled>Stop Recording</button>
         </div>
-        {% endfor %}
     </div>
-    {% endif %}
 
-    {% if audio_data %}
-    <h2>Recorded Audio:</h2>
-    <div class="audio-container">
-        {% for item in audio_data %}
-        <div class="audio-item">
-            <audio controls>
-                <source src="{{ item.audio_path }}" type="audio/wav">
-                Your browser does not support the audio element.
-            </audio>
-            <a href="{{ item.audio_path }}" download>Download Audio</a>
-            {% if item.transcription %}
-            <div class="transcription-result">
-                <p class="transcription-text">{{ item.transcription }}</p>
-                <a class="download-transcription" href="data:text/plain;charset=utf-8,{{ item.transcription|urlencode }}" download="transcription.txt">Download Transcription</a>
+     <section class="recent-images">
+        <h2>Recent Images</h2>
+        <div class="images-container">
+            {% for img_path in img_paths|slice:":3" %}
+            <div class="image-item">
+                <img src="{{ img_path }}" alt="Captured Image">
+                <a href="{{ img_path }}" download>Download Image</a>
             </div>
-            {% else %}
-            <button class="transcribe-button" data-audio="{{ item.audio_path }}">Transcribe</button>
-            <div class="transcription-result" style="display: none;">
-                <p class="transcription-text"></p>
-                <a class="download-transcription" href="#" download style="display: none;">Download Transcription</a>
-            </div>
-            {% endif %}
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p>No audio recordings available.</p>
-    {% endif %}
+        <button id="viewAllImages" class="view-all-button">View All Images</button>
+     </section>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'media_capture/js/main.js' %}"></script>
+     <section class="recent-recordings">
+         <h2>Recent Recordings</h2>
+         <div class="recordings-container">
+             {% for item in audio_data|slice:":3" %}
+             <div class="audio-item">
+                 <audio controls>
+                     <source src="{{ item.audio_path }}" type="audio/wav">
+                     Your browser does not support the audio element.
+                 </audio>
+                 {% if item.transcription %}
+                     <div class="transcription-result">
+                         <p class="transcription-text">Transcription file: 
+                             <a href="{{ item.transcription_path }}" download>filename.txt</a>
+                         </p>
+                     </div>
+                 {% else %}
+                     <button class="transcribe-button" data-audio="{{ item.audio_path }}">Transcribe</button>
+                 {% endif %}
+             </div>
+             {% endfor %}
+         </div>
+         <button id="viewAllRecordings" class="view-all-button">View All Recordings</button>
+     </section>
+
+</main>
+
+<footer>
+   <p>© 2024 - All Rights Reserved</p>
+</footer>
+
+<div id="modal" class="modal">
+   <div class="modal-content">
+       <span class="close">&times;</span>
+       <div id="modalContent"></div>
+   </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'media_capture/js/main.js' %}"></script>
+
 </body>
-
 </html>

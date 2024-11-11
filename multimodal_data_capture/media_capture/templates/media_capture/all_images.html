@@ -1,0 +1,6 @@
+{% for img_path in img_paths %}
+<div class="image-item">
+    <img src="{{ img_path }}" alt="Captured Image">
+    <a href="{{ img_path }}" download>Download Image</a>
+</div>
+{% endfor %}

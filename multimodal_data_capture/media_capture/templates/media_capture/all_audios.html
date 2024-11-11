@@ -1,0 +1,17 @@
+{% for item in audio_data %}
+<div class="audio-item">
+    <audio controls>
+        <source src="{{ item.audio_path }}" type="audio/wav">
+        Your browser does not support the audio element.
+    </audio>
+    {% if item.transcription %}
+        <div class="transcription-result">
+            <p class="transcription-text">Transcription file: 
+                <a href="{{ item.transcription_path }}" download>filename.txt</a>
+            </p>
+        </div>
+    {% else %}
+        <button class="transcribe-button" data-audio="{{ item.audio_path }}">Transcribe</button>
+    {% endif %}
+</div>
+{% endfor %}
