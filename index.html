@@ -3,268 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multimodal Learning Analysis Device</title>
+    <title>Multimodal Learning Analytics Device</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-image: url('C:/Users/riada/Desktop/CPS698/multimodal.gif');
+            background-image: url('C:/Users/riada/Desktop/CPS698/Webpage/multimodal.gif');
             background-size: cover;
-            color: white;
-        }
-
-        .container {
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            margin: 50px auto;
-            width: 80%;
-            border-radius: 10px;
-        }
-
-        input[type="file"] {
-            margin: 10px;
-        }
-
-        .file-container {
             display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            margin-top: 20px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            margin: 0;
         }
-
-        .file-box {
-            background-color: #333;
-            padding: 10px;
-            margin: 10px;
-            border-radius: 8px;
-            width: 200px;
-            text-align: center;
-        }
-
-        img {
-            max-width: 100px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 5px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .delete-btn {
-            background-color: red;
-        }
-
-        .delete-btn:hover {
-            background-color: darkred;
-        }
-
-        .download-btn {
-            background-color: #008CBA;
-        }
-
-        .download-btn:hover {
-            background-color: #007bb5;
-        }
-
-        .open-btn {
-            background-color: #FF9800;
-        }
-
-        .open-btn:hover {
-            background-color: #e68900;
-        }
-
-        .close-btn {
-            background-color: #ff4444;
-            color: white;
-            border: none;
-            font-size: 16px;
-            padding: 5px;
-            cursor: pointer;
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            border-radius: 5px;
-        }
-
-        .preview-box {
-            margin-top: 20px;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
+        .title-box {
+            background-color: rgba(255, 255, 255, 0.8); /* White box with transparency */
+            padding: 20px;
+            border: 2px solid #000;
             border-radius: 10px;
-            color: white;
+            margin-top: 20px;
+            text-align: center;
+            width: 50%;
+        }
+        h1 {
+            font-size: 3em;
+            color: #333;
+            margin: 0;
+        }
+        #cameraFrame {
+            width: 50%;
+            height: auto;
+            margin-bottom: 20px;
+            display: none;
             position: relative;
         }
-
-        .preview-box img, .preview-box video, .preview-box audio {
-            max-width: 35%;
+        #camera {
+            width: 100%;
+        }
+        #recordBtn, #captureBtn, #closeCameraBtn {
+            position: absolute;
+            background-color: red;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #recordBtn {
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #captureBtn {
+            bottom: 10px;
+            right: 10px;
+        }
+        #closeCameraBtn {
+            top: 10px;
+            right: 10px;
+            background-color: black;
+        }
+        .mediaDisplay {
+            width: 100%; /* Set to 100% for a wider display */
             margin: 10px 0;
         }
-
-        .preview-box pre {
-            text-align: left;
+        .mediaContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            width: 80%; /* Ensure the audio bar spans 80% of the parent width */
+        }
+        .btnContainer {
+            display: flex;
+            justify-content: space-between;
+            width: 40%;
+            margin-top: 10px;
+        }
+        button {
+            background-color: blue;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: darkblue;
+        }
+        audio {
+            width: 100%; /* Audio bar width */
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Multimodal Learning Analysis Device</h1>
-        
-        <div>
-            <input type="file" id="uploadPicture" accept="image/*">
-            <button onclick="uploadFile('picture')">Upload Picture</button>
-        </div>
-        <div>
-            <input type="file" id="uploadVideo" accept="video/*">
-            <button onclick="uploadFile('video')">Upload Video</button>
-        </div>
-        <div>
-            <input type="file" id="uploadAudio" accept="audio/*">
-            <button onclick="uploadFile('audio')">Upload Audio</button>
-        </div>
-        <div>
-            <input type="file" id="uploadTextFile" accept=".txt">
-            <button onclick="uploadFile('text')">Upload Text File</button>
-        </div>
-        <button onclick="uploadAllFiles()">Upload All Files</button>
 
-        <h3>Uploaded Files</h3>
-        <div id="fileContainer" class="file-container"></div>
+    <div class="title-box">
+        <h1>Multimodal Learning Analytics Device</h1>
+    </div>
+    
+    <button id="openCameraBtn">Open Camera</button>
+    <button id="audioRecordBtn">Record Audio</button>
 
-        <h3>File Preview</h3>
-        <div id="previewContainer" class="preview-box"></div>
+    <div id="cameraFrame">
+        <video id="camera" autoplay></video>
+        <button id="recordBtn">Record</button>
+        <button id="captureBtn">Capture</button>
+        <button id="closeCameraBtn">x</button>
     </div>
 
+    <div id="mediaContainer"></div>
+
     <script>
-        let files = [];
+        let cameraStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
 
-        function uploadFile(type) {
-            let fileInput;
-            switch (type) {
-                case 'picture':
-                    fileInput = document.getElementById('uploadPicture');
-                    break;
-                case 'video':
-                    fileInput = document.getElementById('uploadVideo');
-                    break;
-                case 'audio':
-                    fileInput = document.getElementById('uploadAudio');
-                    break;
-                case 'text':
-                    fileInput = document.getElementById('uploadTextFile');
-                    break;
-            }
+        const cameraFrame = document.getElementById('cameraFrame');
+        const camera = document.getElementById('camera');
+        const openCameraBtn = document.getElementById('openCameraBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const closeCameraBtn = document.getElementById('closeCameraBtn');
+        const mediaContainer = document.getElementById('mediaContainer');
+        const audioRecordBtn = document.getElementById('audioRecordBtn');
+        let audioStream = null;
+        let audioRecorder = null;
+        let audioChunks = [];
 
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                files.push({ type: type, file: file });
-                displayFiles();
-                fileInput.value = ""; // Clear the file input after selecting a file
+        openCameraBtn.addEventListener('click', () => {
+            navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: {
+                    noiseSuppression: true,
+                    echoCancellation: true
+                }
+            })
+            .then(stream => {
+                cameraStream = stream;
+                camera.srcObject = stream;
+                camera.muted = true;
+                cameraFrame.style.display = 'block';
+            })
+            .catch(err => console.error('Error accessing camera: ', err));
+        });
+
+        recordBtn.addEventListener('click', () => {
+            if (!isRecording) {
+                startRecording();
             } else {
-                alert('No file selected!');
+                stopRecording();
             }
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = camera.videoWidth;
+            canvas.height = camera.videoHeight;
+            canvas.getContext('2d').drawImage(camera, 0, 0);
+
+            const photo = canvas.toDataURL('image/png');
+            displayMedia(photo, 'image');
+        });
+
+        closeCameraBtn.addEventListener('click', () => {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+            cameraFrame.style.display = 'none';
+        });
+
+        function startRecording() {
+            mediaRecorder = new MediaRecorder(cameraStream);
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const videoUrl = URL.createObjectURL(blob);
+                displayMedia(videoUrl, 'video');
+                recordedChunks = [];
+            };
+            mediaRecorder.start();
+            isRecording = true;
+            recordBtn.textContent = 'Stop';
         }
 
-        function uploadAllFiles() {
-            if (files.length > 0) {
-                alert('All files uploaded!');
+        function stopRecording() {
+            mediaRecorder.stop();
+            isRecording = false;
+            recordBtn.textContent = 'Record';
+        }
+
+        audioRecordBtn.addEventListener('click', () => {
+            if (audioRecorder && audioRecorder.state === 'recording') {
+                stopAudioRecording();
             } else {
-                alert('No files to upload!');
+                startAudioRecording();
             }
-        }
+        });
 
-        function displayFiles() {
-            const fileContainer = document.getElementById('fileContainer');
-            fileContainer.innerHTML = ''; // Clear the container to prevent duplicate buttons
-
-            files.forEach((fileObj, index) => {
-                const fileBox = document.createElement('div');
-                fileBox.classList.add('file-box');
-
-                let fileName = document.createElement('p');
-                fileName.textContent = `${fileObj.file.name} (${fileObj.type})`;
-                fileBox.appendChild(fileName);
-
-                let openBtn = document.createElement('button');
-                openBtn.textContent = 'Open';
-                openBtn.classList.add('open-btn');
-                openBtn.onclick = () => openFile(index);
-                fileBox.appendChild(openBtn);
-
-                let downloadBtn = document.createElement('a');
-                downloadBtn.textContent = 'Download';
-                downloadBtn.href = URL.createObjectURL(fileObj.file);
-                downloadBtn.download = fileObj.file.name;
-                downloadBtn.classList.add('download-btn');
-                fileBox.appendChild(downloadBtn);
-
-                let deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Delete';
-                deleteBtn.classList.add('delete-btn');
-                deleteBtn.onclick = () => deleteFile(index);
-                fileBox.appendChild(deleteBtn);
-
-                fileContainer.appendChild(fileBox);
-            });
-        }
-
-        function openFile(index) {
-            const previewContainer = document.getElementById('previewContainer');
-            previewContainer.innerHTML = ''; // Clear previous preview
-
-            const fileObj = files[index];
-
-            let closeButton = document.createElement('button');
-            closeButton.textContent = 'X';
-            closeButton.classList.add('close-btn');
-            closeButton.onclick = () => closePreview();
-            previewContainer.appendChild(closeButton);
-
-            if (fileObj.type === 'picture') {
-                let img = document.createElement('img');
-                img.src = URL.createObjectURL(fileObj.file);
-                previewContainer.appendChild(img);
-            } else if (fileObj.type === 'video') {
-                let video = document.createElement('video');
-                video.controls = true;
-                video.src = URL.createObjectURL(fileObj.file);
-                previewContainer.appendChild(video);
-            } else if (fileObj.type === 'audio') {
-                let audio = document.createElement('audio');
-                audio.controls = true;
-                audio.src = URL.createObjectURL(fileObj.file);
-                previewContainer.appendChild(audio);
-            } else if (fileObj.type === 'text') {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    let pre = document.createElement('pre');
-                    pre.textContent = event.target.result;
-                    previewContainer.appendChild(pre);
+        function startAudioRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                audioStream = stream;
+                audioRecorder = new MediaRecorder(audioStream);
+                audioRecorder.ondataavailable = event => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
                 };
-                reader.readAsText(fileObj.file);
+                audioRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    displayMedia(audioUrl, 'audio');
+                    audioChunks = [];
+                };
+                audioRecorder.start();
+                audioRecordBtn.textContent = 'Stop Audio';
+            })
+            .catch(err => console.error('Error accessing microphone: ', err));
+        }
+
+        function stopAudioRecording() {
+            audioRecorder.stop();
+            audioStream.getTracks().forEach(track => track.stop());
+            audioRecordBtn.textContent = 'Record Audio';
+        }
+
+        function displayMedia(mediaSrc, type) {
+            const mediaElement = document.createElement(type === 'video' ? 'video' : (type === 'audio' ? 'audio' : 'img'));
+            mediaElement.src = mediaSrc;
+            mediaElement.classList.add('mediaDisplay');
+            if (type === 'video' || type === 'audio') {
+                mediaElement.controls = true;
             }
+
+            const mediaContainerDiv = document.createElement('div');
+            mediaContainerDiv.classList.add('mediaContainer');
+            mediaContainerDiv.appendChild(mediaElement);
+
+            const downloadBtn = document.createElement('button');
+            downloadBtn.textContent = 'Download';
+            downloadBtn.addEventListener('click', () => downloadMedia(mediaSrc, type));
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', () => {
+                mediaContainerDiv.remove();
+            });
+
+            const btnContainer = document.createElement('div');
+            btnContainer.classList.add('btnContainer');
+            btnContainer.appendChild(downloadBtn);
+            btnContainer.appendChild(deleteBtn);
+
+            mediaContainerDiv.appendChild(btnContainer);
+            mediaContainer.appendChild(mediaContainerDiv);
         }
 
-        function closePreview() {
-            const previewContainer = document.getElementById('previewContainer');
-            previewContainer.innerHTML = ''; // Clear the preview
-        }
-
-        function deleteFile(index) {
-            files.splice(index, 1);
-            displayFiles();
-            document.getElementById('previewContainer').innerHTML = ''; // Clear preview when a file is deleted
+        function downloadMedia(mediaSrc, type) {
+            const a = document.createElement('a');
+            a.href = mediaSrc;
+            a.download = type === 'video' ? 'recorded_video.webm' : (type === 'audio' ? 'recorded_audio.webm' : 'captured_image.png');
+            a.click();
         }
     </script>
 </body>
