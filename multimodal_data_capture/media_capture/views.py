@@ -2,6 +2,9 @@ import os
 from django.shortcuts import render
 from django.conf import settings
 from django.http import JsonResponse
+from django.http import HttpResponseNotFound
+import shutil 
+from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 import threading
 import logging
@@ -215,3 +218,39 @@ def get_recent_images(request):
     img_paths = get_image_paths()[:3]  
     html = render_to_string('media_capture/recent_images.html', {'img_paths': img_paths})
     return JsonResponse({'html': html})
+
+@require_POST
+def delete_audio(request):
+    audio_filename = request.POST.get('audio_filename')
+    if not audio_filename:
+        return JsonResponse({"status": "error", "message": "No audio filename provided"})
+
+    try:
+        audio_path = os.path.join(settings.MEDIA_ROOT, audio_filename)
+        transcription_filename = audio_filename.replace('.wav', '.txt')
+        transcription_path = os.path.join(settings.MEDIA_ROOT, transcription_filename)
+
+        if os.path.exists(audio_path):
+            os.remove(audio_path)
+        if os.path.exists(transcription_path):
+            os.remove(transcription_path)
+
+        return JsonResponse({"status": "success"})
+    except Exception as e:
+        logger.error(f"Error deleting audio: {str(e)}", exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+@require_POST
+def delete_image(request):
+    image_filename = request.POST.get('image_filename')
+    if not image_filename:
+        return JsonResponse({"status": "error", "message": "No image filename provided"})
+
+    try:
+        image_path = os.path.join(settings.MEDIA_ROOT, image_filename)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+        return JsonResponse({"status": "success"})
+    except Exception as e:
+        logger.error(f"Error deleting image: {str(e)}", exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)

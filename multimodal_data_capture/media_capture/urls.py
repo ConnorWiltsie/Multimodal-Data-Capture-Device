@@ -10,4 +10,6 @@ urlpatterns = [
     path('get_all_recordings/', views.get_all_recordings, name='get_all_recordings'),
     path('get_all_images/', views.get_all_images, name='get_all_images'),
     path('get_recent_images/', views.get_recent_images, name='get_recent_images'),
+    path('delete_audio/', views.delete_audio, name='delete_audio'),
+    path('delete_image/', views.delete_image, name='delete_image'),
 ]

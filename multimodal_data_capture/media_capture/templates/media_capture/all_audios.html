@@ -13,5 +13,6 @@
     {% else %}
         <button class="transcribe-button" data-audio="{{ item.audio_path }}">Transcribe</button>
     {% endif %}
+    <button class="delete-button" data-audio="{{ item.audio_path }}">Delete</button> 
 </div>
 {% endfor %}

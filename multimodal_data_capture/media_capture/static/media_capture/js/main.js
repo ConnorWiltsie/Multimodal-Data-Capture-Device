@@ -2,9 +2,9 @@ $(document).ready(function () {
     let isRecording = false;
     let recordingInterval;
 
-    $('#viewAllImages').click(function() {
+    $('#viewAllImages').click(function () {
         console.log("View All Images button clicked");
-        $.get('/get_all_images/', function(data) {
+        $.get('/get_all_images/', function (data) {
             showModal('All Images', data.html);
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error("Error getting all images:", textStatus, errorThrown);
@@ -12,11 +12,11 @@ $(document).ready(function () {
         });
     });
 
-    $('#viewAllRecordings').click(function() {
+    $('#viewAllRecordings').click(function () {
         console.log("View All Recordings button clicked");
-        $.get('/get_all_recordings/', function(data) {
+        $.get('/get_all_recordings/', function (data) {
             showModal('All Recordings', data.html);
-            attachTranscribeHandlers(); 
+            attachTranscribeHandlers();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error("Error getting all recordings:", textStatus, errorThrown);
             alert("Error getting all recordings: " + errorThrown);
@@ -24,13 +24,13 @@ $(document).ready(function () {
     });
 
     $('#recordAudio').click(function () {
-        $('#recordingModal').show(); 
+        $('#recordingModal').show();
     });
 
-   
+
     $('#closeRecordingModal').click(function () {
-        $('#recordingModal').hide(); 
-        stopRecording(); 
+        $('#recordingModal').hide();
+        stopRecording();
     });
 
 
@@ -73,7 +73,7 @@ $(document).ready(function () {
         $.post('/stop_recording/', {
             'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
         }, function (data) {
-            $('#recordingModal').hide(); 
+            $('#recordingModal').hide();
             $('#timer').text('00:00');
 
             updatePageContent();
@@ -102,7 +102,7 @@ $(document).ready(function () {
             var newImagesContainer = newContent.find('.images-container');
             $('.recordings-container').html(newAudioContainer.html());
             $('.images-container').html(newImagesContainer.html());
-            attachTranscribeHandlers(); 
+            attachTranscribeHandlers();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error("Error updating page content:", textStatus, errorThrown);
             alert("Error updating page content. Please refresh the page manually.");
@@ -111,8 +111,8 @@ $(document).ready(function () {
 
     function updateRecentImages() {
         $.get('/get_recent_images/', function (data) {
-            $('.images-container').html(data.html); 
-            attachTranscribeHandlers(); 
+            $('.images-container').html(data.html);
+            attachTranscribeHandlers();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error("Error updating recent images:", textStatus, errorThrown);
             alert("Error updating recent images. Please refresh the page manually.");
@@ -124,7 +124,7 @@ $(document).ready(function () {
             var audioPath = $(this).data('audio');
             var button = $(this);
             var resultDiv = button.siblings('.transcription-result');
-            console.log("Transcribe button clicked for:", audioPath); 
+            console.log("Transcribe button clicked for:", audioPath);
             $.post('/start_transcription/', {
                 'audio_filename': audioPath.split('/').pop(),
                 'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
@@ -170,9 +170,10 @@ $(document).ready(function () {
 
     function showModal(title, content) {
         $('#modal .modal-content h2').text(title);
-        $('#modalContent').html(content); 
+        $('#modalContent').html(content);
         $('#modal').show();
         attachTranscribeHandlers();
+        attachDeleteHandlers();
     }
 
     function getCookie(name) {
@@ -192,11 +193,11 @@ $(document).ready(function () {
 
     function downloadTranscription(filePath) {
         const link = document.createElement('a');
-        link.href = filePath; 
-        link.download = filePath.split('/').pop(); 
-        document.body.appendChild(link); 
-        link.click(); 
-        document.body.removeChild(link); 
+        link.href = filePath;
+        link.download = filePath.split('/').pop();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     const csrftoken = getCookie('csrftoken');
@@ -208,5 +209,51 @@ $(document).ready(function () {
         }
     });
 
+    function attachDeleteHandlers() {
+        $('.delete-button').off('click').click(function () {
+            var audioPath = $(this).data('audio');
+            console.log("Delete button clicked for audio:", audioPath);
+
+            if (confirm("Are you sure you want to delete this recording and its transcription?")) {
+                $.post('/delete_audio/', {
+                    'audio_filename': audioPath.split('/').pop(),
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                }, function (data) {
+                    console.log("Delete audio response:", data);
+                    if (data.status === 'success') {
+                        $(this).closest('.audio-item').remove();
+                    } else {
+                        alert("Error deleting audio: " + data.message);
+                    }
+                }.bind(this)).fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX Error deleting audio:", textStatus, errorThrown);
+                    alert("Error deleting audio.");
+                });
+            }
+        });
+
+        $('.delete-image').off('click').click(function () {
+            var imagePath = $(this).data('image');
+            console.log("Delete button clicked for image:", imagePath);
+
+            if (confirm("Are you sure you want to delete this image?")) {
+                $.post('/delete_image/', {
+                    'image_filename': imagePath.split('/').pop(),
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                }, function (data) {
+                    console.log("Delete image response:", data);
+                    if (data.status === 'success') {
+                        $(this).closest('.image-item').remove();
+                    } else {
+                        alert("Error deleting image: " + data.message);
+                    }
+                }.bind(this)).fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX Error deleting image:", textStatus, errorThrown);
+                    alert("Error deleting image.");
+                });
+            }
+        });
+    }
     attachTranscribeHandlers();
+    attachDeleteHandlers();
 });
