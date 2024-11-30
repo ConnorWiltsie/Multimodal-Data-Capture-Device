@@ -1,3 +1,5 @@
+<h2>All Recordings and Transcriptions</h2>
+<button class="email-button" data-file-type="audio" data-file-path="{{ item.transcription_path }}">Email All Files</button>
 {% for item in audio_data %}
 <div class="audio-item">
     <audio controls>
@@ -5,14 +7,15 @@
         Your browser does not support the audio element.
     </audio>
     {% if item.transcription %}
-        <div class="transcription-result">
-            <p class="transcription-text">Transcription file: 
-                <a href="{{ item.transcription_path }}" download>filename.txt</a>
-            </p>
-        </div>
+    <div class="transcription-result">
+        <p class="transcription-text">Transcription file:
+            <a href="{{ item.transcription_path }}" download>filename.txt</a>
+            <button class="delete-button" data-audio="{{ item.audio_path }}">Delete</button>
+        </p>
+    </div>
     {% else %}
-        <button class="transcribe-button" data-audio="{{ item.audio_path }}">Transcribe</button>
+    <button class="transcribe-button" data-audio="{{ item.audio_path }}">Transcribe</button>
+    <button class="delete-button" data-audio="{{ item.audio_path }}">Delete</button>
     {% endif %}
-    <button class="delete-button" data-audio="{{ item.audio_path }}">Delete</button> 
 </div>
 {% endfor %}

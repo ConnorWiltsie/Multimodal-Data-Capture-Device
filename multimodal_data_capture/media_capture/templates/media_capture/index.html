@@ -14,7 +14,12 @@
     <header>
         <h1>Multimodal Learning Analytics Device</h1>
     </header>
-
+    <div id="pdfStatus" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(255, 255, 255, 0.8); padding: 20px; border: 1px solid #ccc; border-radius: 5px; z-index: 1000;">
+        Generating PDF...
+    </div>
+    <div id="emailStatus" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(255, 255, 255, 0.8); padding: 20px; border: 1px solid #ccc; border-radius: 5px; z-index: 1000;">
+        Sending Email...
+    </div>
     <main>
         <section class="welcome">
             <h2>Your Ultimate Learning Tool</h2>
@@ -43,7 +48,7 @@
                 <div class="image-item">
                     <img src="{{ img_path }}" alt="Captured Image">
                     <a href="{{ img_path }}" download>Download Image</a>
-                    <button class="delete-image" data-image="{{ img_path }}">Delete</button> 
+                    <button class="delete-image" data-image="{{ img_path }}">Delete</button>
                 </div>
                 {% endfor %}
             </div>
@@ -63,12 +68,12 @@
                     <div class="transcription-result">
                         <p class="transcription-text">Transcription file:
                             <a href="{{ item.transcription_path }}" download>filename.txt</a>
-                            <button class="delete-button" data-audio="{{ item.audio_path }}">Delete</button> 
+                            <button class="delete-button" data-audio="{{ item.audio_path }}">Delete</button>
                         </p>
                     </div>
                     {% else %}
                     <button class="transcribe-button" data-audio="{{ item.audio_path }}">Transcribe</button>
-                    <button class="delete-button" data-audio="{{ item.audio_path }}">Delete</button> 
+                    <button class="delete-button" data-audio="{{ item.audio_path }}">Delete</button>
                     {% endif %}
                 </div>
                 {% endfor %}

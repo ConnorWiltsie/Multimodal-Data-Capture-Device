@@ -1,7 +1,12 @@
-{% for img_path in img_paths %}
-<div class="image-item">
-    <img src="{{ img_path }}" alt="Captured Image">
-    <a href="{{ img_path }}" download>Download Image</a>
-    <button class="delete-image" data-image="{{ img_path }}">Delete</button> 
+<h2>All Images</h2>
+<button class="email-button" data-file-type="image" data-file-path="{{ img_path }}">Email All Files</button>
+<button id="generatePdfButton" class="action-button">Generate PDF</button>
+<div class="images-container">
+    {% for img_path in img_paths %}
+    <div class="image-item">
+        <img src="{{ img_path }}" alt="Captured Image">
+        <a href="{{ img_path }}" download>Download Image</a>
+        <button class="delete-image" data-image="{{ img_path }}">Delete</button>
+    </div>
+    {% endfor %}
 </div>
-{% endfor %}

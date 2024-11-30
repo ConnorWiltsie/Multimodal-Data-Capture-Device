@@ -12,4 +12,6 @@ urlpatterns = [
     path('get_recent_images/', views.get_recent_images, name='get_recent_images'),
     path('delete_audio/', views.delete_audio, name='delete_audio'),
     path('delete_image/', views.delete_image, name='delete_image'),
+    path('email_file/', views.email_file, name='email_file'),
+    path('generate_pdf/', views.generate_pdf, name='generate_pdf'),
 ]

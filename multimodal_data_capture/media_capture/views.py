@@ -1,19 +1,22 @@
 import os
 from django.shortcuts import render
 from django.conf import settings
-from django.http import JsonResponse
-from django.http import HttpResponseNotFound
+from django.http import JsonResponse,HttpResponse,HttpResponseNotFound
 import shutil 
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.template.loader import render_to_string
 import threading
 import logging
 from datetime import datetime
 from picamera2 import Picamera2
-import wave
-import pyaudio
-import time
+import wave, pyaudio, time
 from .whisper import transcribe_audio
+
+from django.core.mail import EmailMessage
+
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 logger = logging.getLogger(__name__)
 
@@ -254,3 +257,84 @@ def delete_image(request):
     except Exception as e:
         logger.error(f"Error deleting image: {str(e)}", exc_info=True)
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+def get_file_paths(file_type):
+    """Retrieve file paths for audio or image files."""
+    file_paths = []
+
+    if file_type == 'audio':
+        media_files = [f for f in os.listdir(settings.MEDIA_ROOT) if f.startswith('audio_')]
+    elif file_type == 'image':
+        media_files = [f for f in os.listdir(settings.MEDIA_ROOT) if f.startswith('image_')]
+    else:
+        return None 
+
+    for media_file in media_files:
+        media_path = os.path.join(settings.MEDIA_URL, media_file)  
+        absolute_path = os.path.join(settings.MEDIA_ROOT, media_file)
+        file_paths.append({'media_path': media_path, 'absolute_path': absolute_path})
+
+    return file_paths
+
+@require_POST
+def email_file(request):
+    email_address = request.POST.get('email_address')
+    file_type = request.POST.get('file_type')  
+
+    logger.info(f"Received parameters: file_type={file_type}, email_address={email_address}")
+
+    if not email_address or not file_type:
+        logger.error("Missing parameters.")
+        return JsonResponse({"status": "error", "message": "Missing parameters."})
+
+    file_paths = get_file_paths(file_type)
+
+    if file_paths is None:
+        logger.error("Invalid file type.")
+        return JsonResponse({"status": "error", "message": "Invalid file type."})
+
+    if not file_paths:
+        logger.error("No files found for the specified type.")
+        return JsonResponse({"status": "error", "message": "No files found."})
+
+    email = EmailMessage(
+        subject=f"Your {file_type} files",
+        body=f"Attached are your {file_type} files.",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[email_address],
+    )
+
+    for file in file_paths:
+        if os.path.exists(file['absolute_path']):
+            email.attach_file(file['absolute_path'])
+        else:
+            logger.error(f"File does not exist: {file['absolute_path']}")
+
+    try:
+        email.send()
+        return JsonResponse({"status": "success"})
+    except Exception as e:
+        logger.error(f"Error sending email: {str(e)}", exc_info=True)
+        return JsonResponse({"status": "error", "message": str(e)})
+    
+@require_POST
+def generate_pdf(request):
+    file_paths = get_file_paths('image')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="images.pdf"'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+
+    for file in file_paths:
+        image_path = file['absolute_path']
+        if os.path.exists(image_path):
+            p.drawImage(image_path, 0, height - 400, width=width, height=400)  
+            p.showPage()  
+        else:
+            logger.error(f"Image does not exist: {image_path}")
+
+    p.save()
+
+    return response

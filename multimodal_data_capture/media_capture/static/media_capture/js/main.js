@@ -172,8 +172,50 @@ $(document).ready(function () {
         $('#modal .modal-content h2').text(title);
         $('#modalContent').html(content);
         $('#modal').show();
+
         attachTranscribeHandlers();
         attachDeleteHandlers();
+
+        if (title === 'All Images') {
+            $('#generatePdfButton').click(function () {
+                var imagePaths = [];
+                $('.image-item img').each(function () {
+                    var imgPath = $(this).attr('src');
+                    imagePaths.push(imgPath.split('/').pop());
+                });
+
+                console.log("Generating PDF with images:", imagePaths);
+
+                $('#pdfStatus').show();
+
+                $.post('/generate_pdf/', {
+                    'image_filenames[]': imagePaths,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                }, function (response, status, xhr) {
+                    console.log("PDF generation response:", response);
+                    $('#pdfStatus').hide();
+                    if (status === 'success') {
+                        var blob = new Blob([response], {
+                            type: 'application/pdf'
+                        });
+                        var url = window.URL.createObjectURL(blob);
+                        var a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'all_images.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        console.error("Error generating PDF:", xhr.responseText);
+                        alert("Error generating PDF: " + xhr.responseText);
+                    }
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX Error generating PDF:", textStatus, errorThrown);
+                    $('#pdfStatus').hide();
+                    alert("Error generating PDF.");
+                });
+            });
+        }
     }
 
     function getCookie(name) {
@@ -254,6 +296,35 @@ $(document).ready(function () {
             }
         });
     }
+
+    $(document).on('click', '.email-button', function () {
+        var fileType = $(this).data('file-type');
+        var filePath = $(this).data('file-path');
+        var emailAddress = prompt("Please enter your email address:");
+
+        if (emailAddress) {
+            $('#emailStatus').show();
+
+            $.post('/email_file/', {
+                'file_type': fileType,
+                'file_path': filePath,
+                'email_address': emailAddress,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            }, function (data) {
+                $('#emailStatus').hide();
+                if (data.status === 'success') {
+                    alert("Email sent successfully!");
+                } else {
+                    alert("Error sending email: " + data.message);
+                }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                $('#emailStatus').hide();
+                console.error("Error sending email:", textStatus, errorThrown);
+                alert("Error sending email.");
+            });
+        }
+    });
+
     attachTranscribeHandlers();
     attachDeleteHandlers();
 });
