@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 import threading
 import logging
 from datetime import datetime
-from picamera2 import Picamera2
+#from picamera2 import Picamera2
 import wave, pyaudio, time
 from .whisper import transcribe_audio
 
@@ -20,21 +20,21 @@ from reportlab.pdfgen import canvas
 
 logger = logging.getLogger(__name__)
 
-#Capture image
-def capture():
-    
-    #Create picamera
-    picam2 = Picamera2()
-    config = picam2.create_still_configuration()
-    picam2.configure(config)
-    picam2.start()
-    sleep(2)
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    image_filename = f'image_{timestamp}.jpg'
-    image_path = os.path.join(settings.MEDIA_ROOT, image_filename)
-    picam2.capture_file(image_path)
-    picam2.stop()
-    return image_filename
+##Capture image
+#def capture():
+#    
+#    #Create picamera
+#    picam2 = Picamera2()
+#    config = picam2.create_still_configuration()
+#    picam2.configure(config)
+#    picam2.start()
+#    sleep(2)
+#    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+#    image_filename = f'image_{timestamp}.jpg'
+#    image_path = os.path.join(settings.MEDIA_ROOT, image_filename)
+#    picam2.capture_file(image_path)
+#    picam2.stop()
+#    return image_filename
 
 class AudioRecorder:
     CHUNK = 1024
