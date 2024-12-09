@@ -175,6 +175,7 @@ $(document).ready(function () {
 
         attachTranscribeHandlers();
         attachDeleteHandlers();
+        attachEmailHandlers();
 
         if (title === 'All Images') {
             $('#generatePdfButton').click(function () {
@@ -297,34 +298,38 @@ $(document).ready(function () {
         });
     }
 
-    $(document).on('click', '.email-button', function () {
-        var fileType = $(this).data('file-type');
-        var filePath = $(this).data('file-path');
-        var emailAddress = prompt("Please enter your email address:");
+    function attachEmailHandlers() {
+        $('.email-button').off('click').click(function () {
+            console.log("Email button clicked!");
+            var fileType = $(this).data('file-type');
+            var filePath = $(this).data('file-path');
+            var emailAddress = prompt("Please enter your email address:");
 
-        if (emailAddress) {
-            $('#emailStatus').show();
+            if (emailAddress) {
+                $('#emailStatus').show();
 
-            $.post('/email_file/', {
-                'file_type': fileType,
-                'file_path': filePath,
-                'email_address': emailAddress,
-                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
-            }, function (data) {
-                $('#emailStatus').hide();
-                if (data.status === 'success') {
-                    alert("Email sent successfully!");
-                } else {
-                    alert("Error sending email: " + data.message);
-                }
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                $('#emailStatus').hide();
-                console.error("Error sending email:", textStatus, errorThrown);
-                alert("Error sending email.");
-            });
-        }
-    });
+                $.post('/email_file/', {
+                    'file_type': fileType,
+                    'file_path': filePath,
+                    'email_address': emailAddress,
+                    'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+                }, function (data) {
+                    $('#emailStatus').hide();
+                    if (data.status === 'success') {
+                        alert("Email sent successfully!");
+                    } else {
+                        alert("Error sending email: " + data.message);
+                    }
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    $('#emailStatus').hide();
+                    console.error("Error sending email:", textStatus, errorThrown);
+                    alert("Error sending email.");
+                });
+            }
+        });
+    }
 
     attachTranscribeHandlers();
     attachDeleteHandlers();
+    attachEmailHandlers();
 });

@@ -28,8 +28,12 @@
 
         <section class="actions">
             <button id="recordAudio" class="action-button">Record Audio</button>
-            <button id="captureImage" class="action-button">Capture Image</button>
+            <form method="POST" action="{% url 'capture' %}">
+                {% csrf_token %}
+                <button id="captureImage" class="action-button" name="capture" type="submit">Capture Image</button>
+            </form>
         </section>
+
 
         <div id="recordingModal" class="modal">
             <div class="modal-content">
